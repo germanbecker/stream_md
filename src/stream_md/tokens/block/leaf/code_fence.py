@@ -35,16 +35,16 @@ def python_muiltiline_string(lines: list[str]) -> int:
     """
     multilines = ['"""', "'''" ]
     multiline_start = None
-    multiline_start_string = None
+    multiline_start_string:str|None = None
     for i,line in enumerate(lines):
         if multiline_start is None:
             for multiline in multilines:
-                if multiline in line:
+                if line.count(multiline) == 1: #only if it appears exactly once
                     multiline_start = i
                     multiline_start_string = multiline
                     break
         else:
-            if multiline_start_string in line:
+            if multiline_start_string and multiline_start_string in line:
                 multiline_start = None
                 multiline_start_string = None
     if multiline_start is None:

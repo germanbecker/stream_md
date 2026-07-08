@@ -72,40 +72,40 @@ class EmphasisToken(MarkDownInline, ABC):
         """Devuelve el estilo asociado a este token (italic, bold, etc.)"""
         raise NotImplementedError()
 
-    def preprocess(self, input:str, end_stream: bool = False) -> PreProcessOutput:
+    def preprocess(self, input_text:str, end_stream: bool = False) -> PreProcessOutput:
         """
         If we find the closing marker,split the input and leave everyhing after closing marker as remaining
         """
         search_start = self.open_len +1
-        full_outer  = self.outer + input
+        full_outer  = self.outer + input_text
         close_idx = full_outer[search_start:].find(self.marker)
         for i in range(search_start,len(full_outer)- self.open_len +1):
             _,can_close = self._classify(full_outer,i,end_stream)
             if can_close:
                 split_position = i - len(self.outer) + self.open_len 
-                remaining = input[split_position:]
+                remaining = input_text[split_position:]
                 if remaining or end_stream:  #only split if we know for sure this is the end
                     self.done = True
-                    return PreProcessOutput(input[:split_position], remaining,True)
+                    return PreProcessOutput(input_text[:split_position], remaining,True)
 
 
-        return PreProcessOutput(input,"",False)
+        return PreProcessOutput(input_text,"",False)
         
 
-    def consume(self, input: str, end_stream: bool = False) -> ConsumeResults:
-        if not input:
-            return ConsumeResults(inner=[NULL_STREM_ELEMENT], remaining=input)
+    def consume(self, input_text: str, end_stream: bool = False) -> ConsumeResults:
+        if not input_text:
+            return ConsumeResults(inner=[NULL_STREM_ELEMENT], remaining=input_text)
 
         delta: list[StreamElement] = []
 
         # push de estilo si no lo hemos hecho
         if not self.inner:
             delta.append(self.stack_element)
-            input = input[self.open_len:]
+            input_text = input_text[self.open_len:]
 
         #ver si termina con el marker, el split ya lo hizo el preprocess
-        if input.endswith(self.marker):
-            delta.append(StreamElementPrintable(input[:-self.open_len])) #text up to the marker
+        if input_text.endswith(self.marker):
+            delta.append(StreamElementPrintable(input_text[:-self.open_len])) #text up to the marker
             if self.done: # the end, accourding to preprocess
                 delta.append(STREAM_ELEMT_POP)
                 return ConsumeResults(inner=delta, remaining="")
@@ -114,7 +114,7 @@ class EmphasisToken(MarkDownInline, ABC):
 
         else:
             # todavía no encontramos cierre, consumimos todo como contenido
-            delta.append(StreamElementPrintable(input))
+            delta.append(StreamElementPrintable(input_text))
             return ConsumeResults(inner=delta, remaining="")
 
 

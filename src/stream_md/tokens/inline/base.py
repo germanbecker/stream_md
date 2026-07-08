@@ -43,7 +43,7 @@ class MarkDownInline(Token):
             result = inline_cls.rule(input, end_stream)
             if result.result != RuleResults.NO_MATCH:
                 possibles.append((result,
-                                  len(inline_cls.marker) if hasattr(inline_cls,"marker") else 0))
+                                  len(inline_cls.marker) if hasattr(inline_cls,"marker") and isinstance(inline_cls.marker, str) else 0))
 
         if possibles:
             # Primer match en texto

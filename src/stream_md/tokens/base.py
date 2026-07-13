@@ -4,13 +4,14 @@ Base classes and utilities for token processing in the streaming markdown parser
 
 from __future__ import annotations
 
-from typing import Literal, Optional, Union, List
+from typing import ClassVar, Literal, Optional, Union, List
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from rich.style import StyleStack, Style
 import logging
 
 from stream_md.type_defs import (
+    STREAM_ELEMENT_POP,
     RuleResults, 
     StreamElement, 
     PreProcessOutput, 
@@ -19,6 +20,8 @@ from stream_md.type_defs import (
 )
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_CONTAINER = "_default_container"
 
 
 class TokenStack:
@@ -65,6 +68,9 @@ class TokenStack:
         """Remove and return token at specific position."""
         return self.tokens.pop(position)
 
+    def __repr__(self):
+        return "->".join([str(type(x)) for x in self.tokens])
+
 
 def default_token_stack() -> TokenStack:
     """Create a default token stack."""
@@ -82,19 +88,19 @@ class MarkdownContainer:
     style_stack: StyleStack = field(default_factory=default_style_stack)
     token_stack: TokenStack = field(default_factory=default_token_stack)
 
-    _instance: Optional['MarkdownContainer'] = None
+    _instances: ClassVar[dict[str, 'MarkdownContainer']] = {}
 
     @classmethod
-    def initialize(cls) -> None:
+    def initialize(cls, cid:str = DEFAULT_CONTAINER) -> None:
         """Initialize the global container instance."""
-        cls._instance = cls()
+        cls._instances[cid] = cls()
 
     @classmethod
-    def get(cls) -> 'MarkdownContainer':
+    def get(cls, cid= DEFAULT_CONTAINER) -> 'MarkdownContainer':
         """Get the global container instance."""
-        if cls._instance is None:
+        if cid not in cls._instances:
             raise RuntimeError("Container not initialized")
-        return cls._instance
+        return cls._instances[cid]
 
 
 @dataclass(frozen=True)
@@ -135,13 +141,17 @@ class Token(ABC):
     <input(str)> --> preprocess -> <str> -> next_token -> <ProcessOutput> -> postprocess -> <ProcessOutput>
     """
 
-    def __init__(self):
+    "add a syle pop before poping self"
+    add_a_pop: bool = False
+
+    def __init__(self, cid = DEFAULT_CONTAINER):
+        self.cid = cid
         self.inner: List[StreamElement] = []
         self.outer = ""
         self.delta: List[StreamElement] = []
         self.before_new_token = ""
-        self.stack = MarkdownContainer.get().token_stack
-        self.style_stack = MarkdownContainer.get().style_stack
+        self.stack = MarkdownContainer.get(self.cid).token_stack
+        self.style_stack = MarkdownContainer.get(self.cid).style_stack
         self.done = False
         self.stack.push(self)
 
@@ -284,6 +294,8 @@ class Token(ABC):
                         remaining=downstream.remaining
                     )
                 # Remove ourselves from the stack
+                if self.add_a_pop:
+                    downstream.stream.append(STREAM_ELEMENT_POP)
                 self.stack.pop(self)
 
         postprocess_result = self.postprocess(downstream, end_stream)

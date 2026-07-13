@@ -41,7 +41,7 @@ class MarkDownRender:
         MarkdownContainer.initialize()
         self.root = Root()
         self.console = console
-        self.style_stack = StyleStack(Style(color="misty_rose3"))
+        self.style_stack = StyleStack(Style())
 
     def render(self, stream: List[StreamElement]) -> None:
         """

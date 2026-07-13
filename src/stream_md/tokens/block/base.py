@@ -14,6 +14,8 @@ import logging
 from stream_md.type_defs import RuleResults, StreamElement, PreProcessOutput, ProcessOutput, ConsumeResults
 from stream_md.tokens.base import TokenStack, Token, Match, Possible, NoMatch, FindChild, FoundChild, PossibleChild, NoChild
 
+logger= logging.getLogger()
+
 @dataclass(frozen=True)
 class BlockMatch(Match):
     token: MarkDownBlock
@@ -36,6 +38,10 @@ class MarkDownBlock(Token):
         ...
     
     def find_block(self, input:str, end_stream: bool = False) -> FindChild:
+        if self.outer and not self.outer.endswith("\n"):
+            logger.warning(f"find_block called mid-line by {self}: outer ends with "
+                           f"{self.outer[-20:]!r}")
+            
         always_matches = [ block for block in self.all_blocks if block.always_matches]
         if len(always_matches) > 1:
             raise RuntimeError(f" there could only be one block that always matches")

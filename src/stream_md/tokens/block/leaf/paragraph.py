@@ -1,9 +1,17 @@
-from stream_md.type_defs import RuleResults,PreProcessOutput,ConsumeResults,StreamElementPrintable
+from stream_md.tokens.base import DEFAULT_CONTAINER
+from stream_md.type_defs import RuleResults,PreProcessOutput,ConsumeResults, StackStyleAction, StackStylePop, StackStylePush, StreamElement,StreamElementPrintable, StreamElementSyleStack, Style
 from stream_md.tokens.block.base import BlockRuleResult,BlockMatch
 from stream_md.tokens.block.leaf.base import LeafBlock
+from stream_md.tokens.base import ProcessOutput
 
 class Paragraph(LeafBlock):
+    add_a_pop = True
     always_matches = True
+
+    def __init__(self, cid=DEFAULT_CONTAINER):
+        self.started: bool = False
+        self.pop_style: bool = False
+        super().__init__(cid)
     
     def _not_me(self,s:str):
         for block in self.all_blocks:
@@ -35,10 +43,21 @@ class Paragraph(LeafBlock):
                 else:
                     self.done = True
                     break
-        return PreProcessOutput(processed="".join(lines[:i])[len(self.outer):], remaining="".join(lines[i:]), done=self.done)
+            
+        remaining="".join(lines[i:])
+        if self.done and  not remaining:
+            self.pop_style = True
+        return PreProcessOutput(processed="".join(lines[:i])[len(self.outer):], remaining=remaining, done=self.done)
 
-    def consume(self,input: str, end_stream: bool = False) -> ConsumeResults:
+    def consume(self,input_text: str, end_stream: bool = False) -> ConsumeResults:
         #preprocess already selcted what is ours, so we consume everything
-        return ConsumeResults( remaining="", inner=[StreamElementPrintable(input)])
+        inner: list[StreamElement] = []
+        if not self.started:
+            inner.append(StreamElementSyleStack(StackStylePush(Style(color="misty_rose3"))))
+            self.started = True
+        inner.append(StreamElementPrintable(input_text))
+        return ConsumeResults( remaining="", inner=inner)
+
+
     def __str__(self):
         return f"Paragraph() <{id(self)}"

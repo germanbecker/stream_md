@@ -16,16 +16,16 @@ class Paragraph(LeafBlock):
     def _not_me(self,s:str):
         for block in self.all_blocks:
             if not isinstance(self,block):
-                result = block.rule(s)
+                result = block.rule(s,cid=self.cid)
                 if result.result == RuleResults.MATCH:
                     self.stack.pop(result.token)
                     return True
         return False
 
     @classmethod
-    def rule(cls,s: str, end_stream: bool = False) ->BlockRuleResult:
+    def rule(cls,s: str, end_stream: bool = False,cid = DEFAULT_CONTAINER) ->BlockRuleResult:
         #match always for now..
-        return BlockMatch(cls(),0)
+        return BlockMatch(cls(cid),0)
 
 
     def preprocess(self, input: str, end_stream: bool = False) -> PreProcessOutput:

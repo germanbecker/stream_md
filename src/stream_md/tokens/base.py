@@ -307,7 +307,7 @@ class Token(ABC):
 
     @classmethod
     @abstractmethod
-    def rule(cls, s: str, end_stream: bool = False) -> 'RuleResult':
+    def rule(cls, s: str, end_stream: bool = False, cid:str = DEFAULT_CONTAINER) -> 'RuleResult':
         """
         Class method to check if this token type matches the input.
         

@@ -12,7 +12,7 @@ from rich.style import StyleStack,Style
 import logging
 
 from stream_md.type_defs import RuleResults, StreamElement, PreProcessOutput, ProcessOutput, ConsumeResults
-from stream_md.tokens.base import TokenStack, Token, Match, Possible, NoMatch, FindChild, FoundChild, PossibleChild, NoChild
+from stream_md.tokens.base import DEFAULT_CONTAINER, TokenStack, Token, Match, Possible, NoMatch, FindChild, FoundChild, PossibleChild, NoChild
 
 logger= logging.getLogger()
 
@@ -34,7 +34,7 @@ class MarkDownBlock(Token):
     
     @classmethod
     @abstractmethod
-    def rule(cls, s:str, end_stream: bool = False) -> BlockRuleResult:
+    def rule(cls, s:str, end_stream: bool = False, cid:str = DEFAULT_CONTAINER) -> BlockRuleResult:
         ...
     
     def find_block(self, input:str, end_stream: bool = False) -> FindChild:
@@ -48,7 +48,7 @@ class MarkDownBlock(Token):
         rest = [ block for block in self.all_blocks if not block.always_matches]
         possibles: list[Possible] = []
         for block in rest:
-            result = block.rule(input,end_stream)
+            result = block.rule(input,end_stream,cid=self.cid)
             if result.result == RuleResults.MATCH:
                 return FoundChild(is_match=RuleResults.MATCH,token=result.token, position=result.position)
             elif result.result == RuleResults.POSSIBLE:
@@ -60,7 +60,7 @@ class MarkDownBlock(Token):
 
         #now check if paragraph matches
         if always_matches:
-            result = always_matches[0].rule(input,end_stream)
+            result = always_matches[0].rule(input,end_stream,cid=self.cid)
             if result.result == RuleResults.MATCH:
                 return FoundChild(is_match=RuleResults.MATCH,token=result.token, position=result.position)
         return NoChild()

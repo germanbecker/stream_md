@@ -40,7 +40,7 @@ class MarkDownInline(Token):
         not_me = [ c for c in MarkDownInline.all_inlines if type(self) is not c]
 
         for inline_cls in not_me:
-            result = inline_cls.rule(input, end_stream)
+            result = inline_cls.rule(input, end_stream,cid=self.cid)
             if result.result != RuleResults.NO_MATCH:
                 possibles.append((result,
                                   len(inline_cls.marker) if hasattr(inline_cls,"marker") and isinstance(inline_cls.marker, str) else 0))

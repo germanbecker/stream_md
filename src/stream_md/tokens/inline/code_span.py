@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from rich.style import Style
-from stream_md.tokens.base import RuleResult, Match, NoMatch, Possible
+from stream_md.tokens.base import DEFAULT_CONTAINER, RuleResult, Match, NoMatch, Possible
 
 from stream_md.tokens.inline.base import ( MarkDownInline,
                                           )
@@ -45,10 +45,10 @@ class CodeSpan(EmphasisToken):
 
 
 
-    def __init__(self,marker_length: int):
+    def __init__(self,marker_length: int, cid:str = DEFAULT_CONTAINER):
         self.marker_length = marker_length
         self.marker = BACK_TICK * self.marker_length
-        super().__init__()
+        super().__init__(cid= cid)
 
     def preprocess(self, input_text: str, end_stream: bool = False) -> PreProcessOutput:
         full_outer = self.outer + input_text
@@ -75,7 +75,7 @@ class CodeSpan(EmphasisToken):
         return NoChild()
 
     @classmethod
-    def rule(cls, s: str, end_stream: bool = False) -> RuleResult:
+    def rule(cls, s: str, end_stream: bool = False, cid:str = DEFAULT_CONTAINER) -> RuleResult:
         """
         If open and close are found in s (i.e. same marker length) return that
         If open is found but not close, return possible with the fist opening found
@@ -114,7 +114,7 @@ class CodeSpan(EmphasisToken):
                     matching = find_marker(marker_length)
                     if matching and ( i + marker_length < slen or end_stream): #is it a valid end marker
                         if matching[0] == 0: #if it was the first marker -> match, else wait to see if the first one wraps this one
-                            return Match(cls(marker_length),matching[1].start)
+                            return Match(cls(marker_length, cid=cid),matching[1].start)
                         else: #store the end
                             matching[1].end = i #do we use it for something?
                     else:
@@ -125,7 +125,7 @@ class CodeSpan(EmphasisToken):
             if end_stream or found_new_line: #finish procesing: either full match or no match
                 for marker in markers:
                     if marker.end:
-                        return Match(cls(marker.len), marker.start)
+                        return Match(cls(marker.len,cid), marker.start)
                         
                 else:
                     return NoMatch()

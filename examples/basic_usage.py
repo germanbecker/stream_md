@@ -113,4 +113,8 @@ a **que** **bueno** s
 
 
 if __name__ == "__main__":
+    console= Console()
+    render = MarkDownRender(console)
+    render.stream_parse("Hola *fasd* ***asdasdasd* `code` del ojete")
+    render.end_stream()
     main()

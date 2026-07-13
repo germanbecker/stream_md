@@ -4,7 +4,7 @@ from class_property import class_property
 
 from rich.style import Style
 
-from stream_md.tokens.base import RuleResult, Match, NoMatch, Possible
+from stream_md.tokens.base import DEFAULT_CONTAINER, RuleResult, Match, NoMatch, Possible
 from stream_md.tokens.inline.base import ( MarkDownInline,
                                           )
                                           
@@ -25,8 +25,8 @@ from stream_md.type_defs import ( StreamElementPrintable,
 class EmphasisToken(MarkDownInline, ABC):
     """Abstract base for * or ** emphasis tokens"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, cid:str=DEFAULT_CONTAINER):
+        super().__init__(cid=cid)
         self.done = False
         self.stack_element = StreamElementSyleStack(StackStylePush(self.get_style()))
         self.open_len = len(self.marker)
@@ -119,7 +119,7 @@ class EmphasisToken(MarkDownInline, ABC):
 
 
     @classmethod
-    def rule(cls, s: str,end_stream: bool = False) -> RuleResult:
+    def rule(cls, s: str,end_stream: bool = False, cid: str = DEFAULT_CONTAINER) -> RuleResult:
         mlen = len(cls.marker)
         n = len(s)
 
@@ -134,7 +134,7 @@ class EmphasisToken(MarkDownInline, ABC):
                         if s[j:j+mlen] == cls.marker:
                             _, can_close = cls._classify(s,j,end_stream)
                             if can_close:
-                                token = cls()  # instancia → push en stack
+                                token = cls(cid=cid)  # instancia → push en stack
                                 return Match(token=token, position=i)
                         j += 1
                     #have opining marker but no closing one

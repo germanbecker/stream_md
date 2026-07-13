@@ -66,19 +66,22 @@ class Table(LeafBlock):
         return text
 
     def subparse(self, s:str) -> list[StreamElement]:
-        import ipdb
-        #ipdb.set_trace()
         cid = "tp_" + s[:100]
         MarkdownContainer.initialize(cid=cid)
         subparser = Root(cid=cid)
         remaining = s
         stream = []
+        result = subparser.process(s)
+        remaining = result.remaining
+        stream+= result.stream
+        result = subparser.process(remaining,True)
+        stream+= result.stream
+        remaining = result.remaining
         while remaining:
             result = subparser.process(remaining,True)
             remaining = result.remaining
             stream+= result.stream
-        if subparser.add_a_pop:
-            stream.append(STREAM_ELEMT_POP)
+
         return stream
                             
     def consume(self, input_text: str, end_stream: bool = False) -> ConsumeResults:
@@ -196,6 +199,7 @@ class Table(LeafBlock):
 
     @classmethod
     def rule(cls, s:str, end_stream: bool = False) -> BlockRuleResult:
+        print ("hola")
         #Rules for blocks always receive full lines at the begining
         # we should only match the first line
         lines = s.splitlines(keepends=True)

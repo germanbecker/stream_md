@@ -73,6 +73,12 @@ renderer.end_stream()
 
 ## Table
 
+| Item | Price | Qty | Notes |
+|:-----|------:|:---:|:------|
+| Widget | $9.99 | 12 | In stock |
+| Gadget | $149.00 | 3 | Backordered |
+| Gizmo | $0.50 | 1000 | Bulk only |
+
 | a | b |
 | - | - |
 | Uno | **Dos** |

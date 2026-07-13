@@ -84,6 +84,21 @@ class Table(LeafBlock):
 
         return stream
                             
+    def get_alignments(self,line:str) -> list[str|None]:
+        raw = self.split_row(line)
+        r = []
+        for e in raw:
+            e = e.strip()
+            if e.startswith(":") and e.endswith(":"):
+                r.append("center")
+            elif e.startswith(":"):
+                r.append("left")
+            elif e.endswith(":"):
+                r.append("right")
+            else:
+                r.append(None)
+        return r
+
     def consume(self, input_text: str, end_stream: bool = False) -> ConsumeResults:
         #preprocess already separated what is ours
         if self.done:
@@ -93,11 +108,15 @@ class Table(LeafBlock):
             #tableplace_holder
             lines = (self.outer + input_text).splitlines()
             headers = self.split_row(lines[0])
+            alignments = self.get_alignments(lines[1])
 
             table = RTable(header_style=Style(bgcolor="#004040"))
-            for column in headers:
+            for column,alignment in zip(headers,alignments):
                 stream = self.subparse(column)
-                table.add_column(self.build_text(stream))
+                if alignment:
+                    table.add_column(self.build_text(stream),justify=alignment)
+                else:
+                    table.add_column(self.build_text(stream))
 
             for row in lines[2:]:
                 prow = []
@@ -176,7 +195,7 @@ class Table(LeafBlock):
     @staticmethod
     def no_delimiter(s: str) -> bool:
         "returns True if s cannot be a delimiter (conteains characters other than ' ' '| or '-')"
-        return any(c not in " |-\n" for c in s)
+        return any(c not in ": |-\n" for c in s)
 
 
     @staticmethod

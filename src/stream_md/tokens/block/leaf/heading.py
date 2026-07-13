@@ -12,6 +12,7 @@ from stream_md.type_defs import ( StackStylePush,
                                  )
 
 from stream_md.tokens.base import (
+                                 DEFAULT_CONTAINER,
                                  Possible,
                                  NoMatch,
                                  )
@@ -32,9 +33,9 @@ class Heading(LeafBlock):
             6: Style(dim=True, color="yellow"),
         }
     stack_style = True
-    def __init__(self,level:int):
+    def __init__(self,level:int, cid:str = DEFAULT_CONTAINER):
         self.level = level
-        super().__init__()
+        super().__init__(cid=cid)
 
         self.ire = re.compile(fr"\s*{'#' * level}\s*(.*)")
         self.style_stack.push(self.styles[level])
@@ -44,14 +45,14 @@ class Heading(LeafBlock):
         self.done = False
 
     @classmethod
-    def rule(cls,s: str, end_stream: bool = False) -> BlockRuleResult:
+    def rule(cls,s: str, end_stream: bool = False, cid:str = DEFAULT_CONTAINER) -> BlockRuleResult:
         #do not assume this is the start of the line
         lines = s.splitlines(keepends=True)
         if not lines:
             return Possible(0)
         s = lines[0]
         if m := heading_re.match(s):
-            token = cls(level= len(m.group(1)))
+            token = cls(level= len(m.group(1)), cid=cid)
             return BlockMatch(token,position=0)
         if possible_heading_re.match(s) and not end_stream:
             return Possible(0)

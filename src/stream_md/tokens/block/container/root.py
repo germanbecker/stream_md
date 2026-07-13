@@ -6,7 +6,7 @@ from typing import Tuple
 import itertools
 
 from stream_md.type_defs import StreamElementPrintable
-from stream_md.tokens.base import PreProcessOutput, ProcessOutput,ConsumeResults, NoMatch
+from stream_md.tokens.base import DEFAULT_CONTAINER, PreProcessOutput, ProcessOutput,ConsumeResults, NoMatch
 from stream_md.tokens.block.base import MarkDownBlock,BlockRuleResult
 
 
@@ -44,6 +44,6 @@ class Root(MarkDownBlock):
 
 
     @classmethod
-    def rule(cls, s: str, end_stream: bool = False ) -> BlockRuleResult:
+    def rule(cls, s: str, end_stream: bool = False, cid: str= DEFAULT_CONTAINER) -> BlockRuleResult:
         return NoMatch()
 

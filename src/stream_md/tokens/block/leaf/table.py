@@ -8,7 +8,7 @@ from stream_md.type_defs import ( ConsumeResults,
                                  StreamElementSyleStack,
                                  STREAM_ELEMT_POP,
                                  )
-from stream_md.tokens.base import ( NoChild,
+from stream_md.tokens.base import ( DEFAULT_CONTAINER, NoChild,
                                    FindChild,
                                    Possible,
                                    NoMatch,
@@ -94,7 +94,7 @@ class Table(LeafBlock):
             lines = (self.outer + input_text).splitlines()
             headers = self.split_row(lines[0])
 
-            table = RTable()
+            table = RTable(header_style=Style(bgcolor="#004040"))
             for column in headers:
                 stream = self.subparse(column)
                 table.add_column(self.build_text(stream))
@@ -147,8 +147,6 @@ class Table(LeafBlock):
         return NoChild()
 
     _delimiter_cell = re.compile(r'^:?-+:?$')
-    def __init__(self):
-        super().__init__()
 
     @staticmethod
     def split_row(line: str) -> list[str]:
@@ -198,8 +196,7 @@ class Table(LeafBlock):
 
 
     @classmethod
-    def rule(cls, s:str, end_stream: bool = False) -> BlockRuleResult:
-        print ("hola")
+    def rule(cls, s:str, end_stream: bool = False, cid:str = DEFAULT_CONTAINER) -> BlockRuleResult:
         #Rules for blocks always receive full lines at the begining
         # we should only match the first line
         lines = s.splitlines(keepends=True)
@@ -216,7 +213,7 @@ class Table(LeafBlock):
         if end_stream or lines[1].endswith("\n"):
             delimiter = cls.is_delimiter(lines[1])
             if header == delimiter:
-                return BlockMatch(cls(),0)
+                return BlockMatch(cls(cid=cid),0)
             else:
                 return NoMatch()
         else:

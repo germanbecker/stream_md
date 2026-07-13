@@ -14,7 +14,7 @@ from stream_md.type_defs import ( ConsumeResults,
                                  StreamElementSyleStack,
                                  STREAM_ELEMT_POP,
                                  )
-from stream_md.tokens.base import ( NoChild,
+from stream_md.tokens.base import ( DEFAULT_CONTAINER, NoChild,
                                    FindChild,
                                    Possible,
                                    NoMatch,
@@ -76,8 +76,8 @@ class CodeFence(LeafBlock):
     def find_child(self, input: str, end_stream: bool) -> FindChild:
         return NoChild()
 
-    def __init__(self, fence: str, language: str):
-        super().__init__()
+    def __init__(self, fence: str, language: str, cid:str = DEFAULT_CONTAINER):
+        super().__init__(cid=cid)
         self.language = language
         self.fence = fence
         self.end_re = re.compile(rf"^[ ]{{0,3}}{self.fence}{self.fence[0]}*\s*$")
@@ -86,7 +86,7 @@ class CodeFence(LeafBlock):
         self.stack_element = StreamElementSyleStack(StackStylePush(Style(color="blue")))
 
     @classmethod
-    def rule(cls, s:str, end_stream: bool = False) -> BlockRuleResult:
+    def rule(cls, s:str, end_stream: bool = False, cid:str = DEFAULT_CONTAINER) -> BlockRuleResult:
         lines = s.splitlines()
         if not lines:
             if not end_stream:
@@ -96,7 +96,7 @@ class CodeFence(LeafBlock):
         s = lines[0]
         m = cls.fence_re.match(s)
         if m:
-            instance = cls(m.group(1), m.group(2))
+            instance = cls(m.group(1), m.group(2), cid=cid)
             return BlockMatch(instance,0)
         elif cls.posible_re.match(s) and s[-1] != "\n" and not end_stream:
             return Possible(0)

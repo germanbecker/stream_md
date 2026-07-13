@@ -8,10 +8,13 @@ to render markdown content as it arrives.
 
 import time
 import random
+import logging
 from rich.console import Console
 
 from stream_md import MarkDownRender
-
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.warning("Hola")
 
 def random_chunks(text: str, min_len: int = 1, max_len: int = 20):
     """Split text into random-sized chunks to simulate streaming."""
@@ -66,6 +69,20 @@ renderer.end_stream()
 - Item 1
 - Item 2 with *emphasis*
 - Item 3 with **bold text**
+- Item 4 with `code`
+
+## Table
+
+| a | b |
+| - | - |
+| Uno | **Dos** |
+| Tres | Cuatro | 
+
+| Hola soy una `tabla` |a *que* **bueno**  s | chau |
+| - | - | - |
+| Que lindo | que feo | `qeu` grande
+
+a **que** **bueno** s
 
 **That's all for now!**"""
 
@@ -82,10 +99,10 @@ renderer.end_stream()
         renderer.stream_parse(chunk)
         
         # Add a small delay to simulate network latency
-        time.sleep(0.1)
+        time.sleep(0.0)
         
         # Show progress
-        if i % 10 == 0:
+        if False and i % 10 == 0:
             print(f"\n[Progress: {i+1}/{len(chunks)} chunks processed]", end="")
     
     # Signal end of stream

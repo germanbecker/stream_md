@@ -106,3 +106,4 @@ class MarkDownRender:
             
         if output.remaining:
             logger.warning(f"Remaining content after end_stream: {output.remaining!r}")
+        self.buffer = ""
